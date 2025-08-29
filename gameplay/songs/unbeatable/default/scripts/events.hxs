@@ -1,0 +1,332 @@
+var timer:FlxTimer = null;
+var camMovement:Bool = true;
+
+var noMiss:Bool = false;
+
+public var beatText:FlxText;
+public var beatText2:FlxText;
+
+public var ycbuLightningL:FlxSprite;
+public var ycbuLightningR:FlxSprite;
+public var ycbuHeadL:FlxBackdrop;
+public var ycbuHeadR:FlxBackdrop;
+
+public var clownCar:FlxSprite;
+public var estatica:FlxSprite;
+
+public var ycbuWhite:FlxSprite;
+public var lakitu:FlxSprite;
+public var gyromite:FlxSprite;
+
+function onCountdownStart(e) {
+    e.cancel();
+}
+
+function onCreatePost() {
+    camHUD.alpha = 0;
+    for (i in [beatText = new FlxText(-230, 150, 1818, '', 24), beatText2 = new FlxText(-230, 150, 1818, '', 24)]) {
+        i.setFormat(Paths.font("fonts/mariones"), 130, FlxColor.WHITE, FlxTextAlign.CENTER);
+        i.scrollFactor.set();
+        i.scale.set(1, 1.5);
+        i.updateHitbox();
+        i.screenCenter();
+
+        final b = stage.props.get("blackBarThingie");
+        b.container.insert(b.container.members.indexOf(b) + 1, i);
+    }
+    for (i in [ycbuLightningL = new FlxSprite(), ycbuLightningR = new FlxSprite()]) {
+        i.frames = Paths.getSparrowAtlas('gameplay/stages/nesbeat/images/ycbu_lightning');
+        i.animation.addByPrefix('idle', "lightning", 15, true);
+        i.animation.play('idle', true);
+        i.screenCenter(FlxAxes.XY);
+        i.antialiasing = true;
+        i.alpha = 0.0001;
+        i.cameras = [game.camOther];
+        stage.layers[0].add(i);
+        FlxTimer.wait(0.01, () -> i.alpha = 0);
+    }
+    ycbuLightningL.x -= 440;
+    ycbuLightningR.x += 455;
+
+    for (i in [ycbuHeadL = new FlxBackdrop(Paths.image('gameplay/stages/nesbeat/images/YouCannotBeatUS_Fellas_Assets'), FlxAxes.Y, 0, 0), ycbuHeadR = new FlxBackdrop(Paths.image('gameplay/stages/nesbeat/images/YouCannotBeatUS_Fellas_Assets'), FlxAxes.Y, 0, 0)]) {
+        i.frames = Paths.getSparrowAtlas('gameplay/stages/nesbeat/images/YouCannotBeatUS_Fellas_Assets');
+        i.animation.addByPrefix('LOL', "Rotat e", 24, true);
+        i.animation.addByPrefix('gyromite', "Bird Up", 24, false);
+        i.animation.addByPrefix('lakitu', "Lakitu", 24, false);
+        i.animation.play('LOL', true);
+        i.updateHitbox();
+        i.scale.set(0.6, 0.6);
+        i.screenCenter(FlxAxes.X);
+        i.flipX = true;
+        i.antialiasing = true;
+        i.alpha = 0.0001;
+        i.cameras = [game.camOther];
+        stage.layers[0].add(i);
+        FlxTimer.wait(0.01, () -> i.alpha = 0);
+    }
+    ycbuHeadL.x -= 450;
+    ycbuHeadL.velocity.set(0, 600);
+    ycbuHeadR.x += 445;
+    ycbuHeadR.velocity.set(0, -600);
+
+    estatica = new FlxSprite();
+    estatica.frames = Paths.getSparrowAtlas('gameplay/songs/unbeatable/images/Mario_static');
+    estatica.animation.addByPrefix('idle', "static play", 15);
+    estatica.animation.play('idle');
+    estatica.antialiasing = false;
+    estatica.cameras = [game.camOther];
+    estatica.alpha = 0.05;
+    estatica.updateHitbox();
+    estatica.screenCenter();
+    stage.layers[0].add(estatica);
+
+    clownCar = new FlxSprite();
+    clownCar.frames = Paths.getSparrowAtlas("gameplay/stages/nesbeat/images/Clown_Car");
+    clownCar.animation.addByPrefix('idle', 'clown car anim', 24, true);
+    clownCar.animation.play('idle');
+    clownCar.scale.set(55, 55);
+    clownCar.antialiasing = false;
+    clownCar.alpha = 0.0001;
+    stage.layers[1].insert(stage.layers[1].members.indexOf(game.spectator) - 1, clownCar);
+
+    ycbuWhite = new FlxSprite().makeGraphic(FlxG.width / 0.9, FlxG.height / 0.9, FlxColor.WHITE);
+    ycbuWhite.scrollFactor.set();
+    ycbuWhite.screenCenter();
+    ycbuWhite.alpha = 0;
+    stage.layers[0].insert(stage.layers[0].members.indexOf(beatText) - 1, ycbuWhite);
+
+    lakitu = new FlxSprite(0, 1000);
+    lakitu.frames = Paths.getSparrowAtlas("gameplay/stages/nesbeat/images/YouCannotBeatUS_Fellas_Assets");
+    lakitu.scrollFactor.set(1.1, 1.1);
+    lakitu.animation.addByPrefix('idle', "Lakitu", 24, false);
+    lakitu.animation.play('idle', true);
+    lakitu.antialiasing = true;
+    lakitu.visible = false;
+    stage.layers[0].insert(stage.layers[0].members.indexOf(beatText2) + 3, lakitu);
+    
+    gyromite = new FlxSprite(0, 1000);
+    gyromite.frames = Paths.getSparrowAtlas("gameplay/stages/nesbeat/images/YouCannotBeatUS_Fellas_Assets");
+    gyromite.scrollFactor.set(1.1, 1.1);
+    gyromite.animation.addByPrefix('idle', "Bird Up", 24, false);
+    gyromite.animation.play('idle', true);
+    gyromite.antialiasing = true;
+    gyromite.visible = false;
+    stage.layers[0].insert(stage.layers[0].members.indexOf(beatText2) + 4, gyromite);
+
+    worldCombo = true;
+}
+
+function cFloat(time:Float) {
+    return (Conductor.instance.stepLength * time) / 1000;
+}
+
+function onStepHit(step:Int) {
+    switch(step) {
+        case 16:
+            FlxTween.tween(stage.props.get("blackinfrontobowser"), {alpha: 0.3}, 10, {ease: FlxEase.quadInOut});
+
+        case 104:
+            FlxTween.tween(camHUD, {alpha: 1}, 5, {ease: FlxEase.quadInOut});
+        
+        case 128:
+            opponent.alpha = spectator.alpha = player.alpha = 1;
+            stage.props.get("blackinfrontobowser").alpha = 0;
+
+        case 1344: // we are nintendo
+            for (i in 0...4)
+                FlxTween.tween(opponentStrums.members[i], {alpha: 0}, cFloat(8), {ease: FlxEase.quadInOut});
+        
+        case 1360: // you cannot beat us
+            for (i in 0...4)
+                opponentStrums.members[i].x -= 1000;
+
+            for (i in 0...4)
+                FlxTween.tween(playerStrums.members[i], {x: playerStrums.members[i].x - 320}, cFloat(16), {ease: FlxEase.cubeInOut});
+            
+            for (i in [playField.hud.script.get("healthBar"), playField.hud.script.get("healthBarBG"), playField.hud.iconP1, playField.hud.iconP2, playField.hud.script.get("scoreText"), playField.hud.script.get("timeBarBG"), playField.hud.script.get("timeBar"), playField.hud.script.get("timeText")])
+                FlxTween.tween(i, {alpha: 0}, 1);
+
+            noMiss = true;
+
+        case 1376:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 1392, 1408, 1424, 1440, 1574, 1606, 1638, 1670:
+            angel.data.stronk.value[0] = 0.1;
+            swapHeads();
+            skipHeads();
+        
+        case 1504, 1508, 1512, 1514, 1536, 1540, 1544, 1546:
+            angel.data.stronk.value[0] = 0.1;
+            reverseHeads();
+        
+        case 1516, 1548:
+            swapHeads();
+        
+        case 1568, 1600, 1632, 1664:
+            angel.data.stronk.value[0] = 0.1;
+            stopHeads();
+            skipHeads();
+        
+        case 1580, 1612, 1644, 1676:
+            angel.data.stronk.value[0] = 0.1;
+            skipHeads();
+        
+        case 1584, 1616, 1648, 1680:
+            startHeads();
+
+        case 1696:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+            for (i in [playField.hud.script.get("healthBar"), playField.hud.script.get("healthBarBG"), playField.hud.iconP1, playField.hud.iconP2, playField.hud.script.get("scoreText"), playField.hud.script.get("timeBarBG"), playField.hud.script.get("timeBar"), playField.hud.script.get("timeText")])
+                i.alpha = 1;
+
+            for (i in 0...4)
+                opponentStrums.members[i].x += 1000;
+            
+            for (i in 0...4) {
+                opponentStrums.members[i].alpha = 1;
+                playerStrums.members[i].x += 320;
+            }
+            noMiss = false;
+    }
+}
+
+function onEvent(e) {
+    switch(e.eventType.toLowerCase()) {
+        case "ycbu text":
+            beatText.color = 0xFFF87858;
+            beatText.text = StringTools.replace(e.params.array[0], ";", "\n");
+            beatText2.text = "";
+            beatText.updateHitbox();
+            beatText.screenCenter();
+
+            // for (i in [ycbuHeadL, ycbuHeadR])
+            //     if (i.animation.name != "LOL") i.animation.play(i.animation.name, true);
+
+            // if (_.event.params[2]) gyromite.animation.play(gyromite.animation.name, true);
+            // if (_.event.params[3]) lakitu.animation.play(lakitu.animation.name, true);
+    
+            var isBlack = e.params.array[1];
+    
+            if(timer != null)
+                timer.cancel();
+
+            timer = new FlxTimer().start(0.1, function(tmr:FlxTimer) {
+                beatText.color = isBlack ? 0xFF000000 : 0xFFFFFFFF;
+            });
+
+        case "camera pan":
+            opponent.visible = e.params.char == 0;
+            player.visible = spectator.visible = e.params.char == 1;
+            stage.props.get("blackBarThingie").alpha = e.params.char == 1 ? 0.3 : 0;
+            
+            if(estatica != null) {
+                estatica.alpha = 0.6;
+                FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+            }
+    }
+}
+
+var singCamMovements = [
+    "singLEFT" => [-12, 0],
+    "singDOWN" => [0, 12],
+    "singUP" => [0, -12],
+    "singRIGHT" => [12, 0]
+];
+var tempPoint:FlxPoint = new FlxPoint();
+
+function onCameraMove(e) {
+    final pos = player.getCameraPosition(tempPoint);
+    e.position.set(pos.x, pos.y);
+
+    final focusedCharacter:Character = (curCameraTarget == 0) ? opponent : player;
+    for(key => value in singCamMovements) {
+        if(focusedCharacter.animation.name != null && StringTools.startsWith(focusedCharacter.animation.name, key)) {
+            e.position.x += value[0];
+            e.position.y += value[1];
+        }
+    }
+}
+
+function onNoteMiss(e) {
+    if(noMiss)
+        playField.stats.health = -999999;
+}
+
+function showHeads() {
+    ycbuHeadL.velocity.y = 600;
+    ycbuHeadR.velocity.y = -600;
+    ycbuLightningL.screenCenter(FlxAxes.X);
+    ycbuLightningR.screenCenter(FlxAxes.X);
+    ycbuLightningL.x -= 440;
+    ycbuLightningR.x += 455;
+    ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 1;
+}
+
+function swapHeads() {
+    var tempX = ycbuHeadL.x;
+    FlxTween.tween(ycbuHeadL, {x: ycbuHeadR.x}, 0.2, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuHeadR, {x: tempX}, 0.2, {ease: FlxEase.quadOut});
+
+    tempX = ycbuLightningL.x;
+    FlxTween.tween(ycbuLightningL, {x: ycbuLightningR.x}, 0.2, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuLightningR, {x: tempX}, 0.2, {ease: FlxEase.quadOut});
+}
+
+function skipHeads() {
+    FlxTween.tween(ycbuHeadL, {y: ycbuHeadL.y + (250 * (ycbuHeadL.velocity.y / Math.abs(ycbuHeadL.velocity.y)))}, 0.25, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuHeadR, {y: ycbuHeadR.y + (250 * (ycbuHeadR.velocity.y / Math.abs(ycbuHeadR.velocity.y)))}, 0.25, {ease: FlxEase.quadOut});
+}
+
+function reverseHeads() {
+    FlxTween.tween(ycbuHeadL, {y: ycbuHeadL.y + (ycbuHeadL.velocity.y)}, 0.1, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuHeadR, {y: ycbuHeadR.y + (ycbuHeadR.velocity.y)}, 0.1, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuHeadL.velocity, {y: ycbuHeadL.velocity.y * -1}, 0.1, {ease: FlxEase.quadOut});
+    FlxTween.tween(ycbuHeadR.velocity, {y: ycbuHeadR.velocity.y * -1}, 0.1, {ease: FlxEase.quadOut});
+}
+
+function stopHeads() {
+    ycbuHeadL.velocity.y /= Math.abs(ycbuHeadL.velocity.y);
+    ycbuHeadR.velocity.y /= Math.abs(ycbuHeadR.velocity.y);
+}
+
+function startHeads() {
+    ycbuHeadL.velocity.y *= 420;
+    ycbuHeadR.velocity.y *= 420;
+}
+
+function setHeads(type:String) {
+    switch (type) {
+        case "gyromite":
+            ycbuHeadL.animation.play('gyromite', true);
+            ycbuHeadR.animation.play('gyromite', true);
+            ycbuHeadL.spacing.y = 150;
+            ycbuHeadR.spacing.y = 150;
+            ycbuHeadL.flipX = false;
+            ycbuHeadR.flipX = true;
+            ycbuHeadL.x = -50;
+            ycbuHeadR.x = 830;
+        case "lakitu":
+            ycbuHeadL.animation.play('lakitu', true);
+            ycbuHeadR.animation.play('lakitu', true);
+            ycbuHeadL.spacing.y = 150;
+            ycbuHeadR.spacing.y = 150;
+            ycbuHeadL.flipX = true;
+            ycbuHeadR.flipX = false;
+            ycbuHeadL.x = -50;
+            ycbuHeadR.x = 840;
+        default:
+            ycbuHeadL.animation.play('LOL', true);
+            ycbuHeadR.animation.play('LOL', true);
+            ycbuHeadL.spacing.y = 0;
+            ycbuHeadR.spacing.y = 0;
+            ycbuHeadL.flipX = true;
+            ycbuHeadR.flipX = false;
+            ycbuHeadL.screenCenter(FlxAxes.X);
+            ycbuHeadL.x -= 450;
+            ycbuHeadR.screenCenter(FlxAxes.X);
+            ycbuHeadR.x += 445;
+    }
+}

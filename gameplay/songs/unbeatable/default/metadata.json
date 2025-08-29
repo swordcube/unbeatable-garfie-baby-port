@@ -1,0 +1,82 @@
+{
+	"song": {
+		"title": "Unbeatable",
+		"mixes": [],
+		"difficulties": [
+			"normal"
+		],
+		"timingPoints": [
+			{
+				"t": 0,
+				"b": 143,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 142657.342657343,
+				"b": 163,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 173577.588056116,
+				"b": 143,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 487423.741902272,
+				"b": 286,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 489102.063580594,
+				"b": 176,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 490465.69994423,
+				"b": 163,
+				"ts": [
+					4,
+					4
+				]
+			}
+		],
+		"artist": "Unknown",
+		"charter": "Unknown",
+		"tracks": null
+	},
+	"freeplay": {
+		"ratings": {"normal": 8},
+		"icon": "mrSYS",
+		"album": "vol1"
+	},
+	"game": {
+		"characters": {
+			"player": "ycbu_bf",
+			"spectator": "ycbu_gf",
+			"opponent": "mrSYS"
+		},
+		"scrollSpeed": {
+			"normal": 3
+		},
+		"allowOpponentMode": true,
+		"stage": "nesbeat",
+		"noteSkin": "mmv2",
+		"uiSkin": "mmv2",
+		"hudSkin": "mmv2"
+	}
+}

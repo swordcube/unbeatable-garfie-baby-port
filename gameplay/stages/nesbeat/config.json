@@ -1,0 +1,110 @@
+{
+    "zoom": 0.9,
+    "folders": {
+        "images": "images",
+        "sfx": "sfx"
+    },
+    "preload": [
+        {"path": "bars", "type": "image"},
+
+        {"path": "tree", "type": "image"},
+        {"path": "arbust", "type": "image"},
+        {"path": "grass", "type": "image"},
+
+        {"path": "castle", "type": "image"},
+        {"path": "castle2", "type": "image"},
+        {"path": "platnes", "type": "image"},
+        {"path": "neslava", "type": "image"},
+
+        {"path": "duckCrosshair", "type": "image"}
+    ],
+    "layers": [
+        [
+            {
+                "id": "bg",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "bars",
+                    "alpha": 1,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "scale": [3, 3],
+                    "updateHitbox": false
+                }
+            },
+            {
+                "id": "blackinfrontobowser",
+                "type": "box",
+                
+                "properties": {
+                    "color": "#000000",
+                    "alpha": 1,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "size": [1423, 800],
+                    "updateHitbox": true
+                }
+            },
+            {
+                "id": "screencolor",
+                "type": "box",
+                
+                "properties": {
+                    "color": "#000000",
+                    "alpha": 0.001,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "size": [1423, 800],
+                    "updateHitbox": true
+                }
+            },
+            {
+                "id": "blackBarThingie",
+                "type": "box",
+                
+                "properties": {
+                    "color": "#000000",
+                    "alpha": 0,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "size": [1423, 800],
+                    "updateHitbox": true
+                }
+            }
+        ],
+        [
+            {
+                "type": "spectator",
+                "properties": {
+                    "scroll": [0.95, 0.95],
+                    "position": [250, 150],
+                    "camera": [0, 0]
+                }
+            },
+            {
+                "type": "opponent",
+                "properties": {
+                    "position": [400, 150],
+                    "camera": [0, 0]
+                }
+            },
+            {
+                "type": "player",
+                "properties": {
+                    "position": [100, 150],
+                    "camera": [0, 0]
+                }
+            }
+        ]
+    ],
+    "startingCamPos": [380, 500]
+}

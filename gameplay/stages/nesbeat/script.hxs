@@ -1,0 +1,64 @@
+public var duckbg:FlxSprite;
+
+var nesTweens:Array<FlxTween> = [];
+var nesTimers:Array<FlxTimer> = [];
+
+public var cutbg:FlxSprite;
+public var cutskyline:FlxSprite;
+public var cutstatic:FlxSprite;
+
+function onLoadPost() {
+    lofiTweensToBeCreepyTo(props.get("bg"));
+    new FlxTimer().start(21.5, function(timer:FlxTimer) {
+        lofiTweensToBeCreepyTo(props.get("bg"));
+    }, 0);
+
+    final blackinfrontobowser = props.get("blackinfrontobowser");
+    blackinfrontobowser.screenCenter();
+
+    final blackBarThingie = props.get("blackBarThingie");
+    blackBarThingie.screenCenter();
+
+    final screencolor = props.get("screencolor");
+    screencolor.screenCenter();
+
+    cutstatic = new FlxSprite(800, 300);
+    cutstatic.frames = Paths.getSparrowAtlas("gameplay/stages/nesbeat/images/static");
+    cutstatic.animation.addByPrefix('idle', "static idle", 15, true);
+    cutstatic.animation.play('idle');
+    cutstatic.scrollFactor.set(0.2, 0.2);
+    cutstatic.scale.set(1.3, 1.3);
+    cutstatic.updateHitbox();
+    cutstatic.visible = false;
+    cutstatic.screenCenter(FlxAxes.XY);
+    cutstatic.antialiasing = true;
+    insert(members.indexOf(screencolor) + 3, cutstatic);
+}
+
+function onCreatePost() {
+    for(char in [game.spectator, game.player, game.opponent]) {
+        char.footOffset.y = 0;
+        char.alpha = 0;
+        char.dance();
+    }
+    game.camGame.snapToTarget();
+}
+
+function lofiTweensToBeCreepyTo(sprite:FlxSprite) {
+	var tempx = sprite.x;
+    FlxTween.tween(sprite, {x: tempx + 420, angle: -35}, 4.0, {onComplete: function(tween:FlxTween) {
+        FlxTween.tween(sprite, {angle: 20}, 2.0, {onComplete: function(tween:FlxTween) {
+            FlxTween.tween(sprite, {x: tempx + 400, angle: 30}, 2.0, {onComplete: function(tween:FlxTween) {
+                FlxTween.tween(sprite, {x: tempx + 420, angle: 0}, 2.0, {onComplete: function(tween:FlxTween) {
+                    FlxTween.tween(sprite, {x: tempx + 520, angle: -15}, 3.0, {onComplete: function(tween:FlxTween) {
+                        FlxTween.tween(sprite, {angle: 10}, 1.5, {onComplete: function(tween:FlxTween) {
+                            FlxTween.tween(sprite, {x: tempx - 50, angle: -40}, 5.5, {onComplete: function(tween:FlxTween) {
+                                FlxTween.tween(sprite, {x: tempx, angle: 0}, 1.5);
+                            }});
+                        }});
+                    }});
+                }});
+            }});
+        }});
+    }});
+}

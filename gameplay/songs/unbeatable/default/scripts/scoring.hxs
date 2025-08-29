@@ -1,0 +1,6 @@
+function onCreate() {
+    // ensure scoring system matches regular psych engine
+    // because being able to get to 1 million score isn't possible in the og song
+    Scoring.currentSystem = new PsychScoringSystem();
+    Scoring.useKillers = false;
+}

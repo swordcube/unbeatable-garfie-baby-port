@@ -1,0 +1,148 @@
+{
+    "rating": {
+        "atlas": {
+            "type": "image",
+            "path": "images/ratings"
+        },
+        "scale": 0.7,
+        "animation": {
+            "killer": {
+                "prefix": "killer",
+                "texture": "sick",
+                "offset": [0, 0]
+            },
+            "sick": {
+                "prefix": "sick",
+                "texture": "sick",
+                "offset": [0, 0]
+            },
+            "good": {
+                "prefix": "good",
+                "texture": "good",
+                "offset": [0, 0]
+            },
+            "bad": {
+                "prefix": "bad",
+                "texture": "bad",
+                "offset": [0, 0]
+            },
+            "shit": {
+                "prefix": "shit",
+                "texture": "shit",
+                "offset": [0, 0]
+            },
+            "miss": {
+                "prefix": "miss",
+                "texture": "miss",
+                "offset": [0, 0]
+            }
+        }
+    },
+    "combo": {
+        "atlas": {
+            "type": "image",
+            "path": "images/combo"
+        },
+        "scale": 0.5,
+        "animation": {
+            "minus": {
+                "prefix": "minus",
+                "texture": "minus",
+                "offset": [0, 0]
+            },
+            "0": {
+                "prefix": "0",
+                "texture": "num0",
+                "offset": [0, 0]
+            },
+            "1": {
+                "prefix": "1",
+                "texture": "num1",
+                "offset": [0, 0]
+            },
+            "2": {
+                "prefix": "2",
+                "texture": "num2",
+                "offset": [0, 0]
+            },
+            "3": {
+                "prefix": "3",
+                "texture": "num3",
+                "offset": [0, 0]
+            },
+            "4": {
+                "prefix": "4",
+                "texture": "num4",
+                "offset": [0, 0]
+            },
+            "5": {
+                "prefix": "5",
+                "texture": "num5",
+                "offset": [0, 0]
+            },
+            "6": {
+                "prefix": "6",
+                "texture": "num6",
+                "offset": [0, 0]
+            },
+            "7": {
+                "prefix": "7",
+                "texture": "num7",
+                "offset": [0, 0]
+            },
+            "8": {
+                "prefix": "8",
+                "texture": "num8",
+                "offset": [0, 0]
+            },
+            "9": {
+                "prefix": "9",
+                "texture": "num9",
+                "offset": [0, 0]
+            }
+        }
+    },
+    "countdown": {
+        "atlas": {
+            "type": "image",
+            "path": "images/countdown"
+        },
+        "steps": [
+            {
+                "name": "prepare",
+                "soundPath": "sfx/intro3",
+                "visible": false
+            },
+            {
+                "name": "ready",
+                "soundPath": "sfx/intro2"
+            },
+            {
+                "name": "set",
+                "soundPath": "sfx/intro1"
+            },
+            {
+                "name": "go",
+                "soundPath": "sfx/introGo"
+            }
+        ],
+        "scale": 0.8,
+        "animation": {
+            "ready": {
+                "prefix": "ready",
+                "texture": "ready",
+                "offset": [0, 0]
+            },
+            "set": {
+                "prefix": "set",
+                "texture": "set",
+                "offset": [0, 0]
+            },
+            "go": {
+                "prefix": "go",
+                "texture": "go",
+                "offset": [0, 0]
+            }
+        }
+    }
+}

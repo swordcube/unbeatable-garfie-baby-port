@@ -1,0 +1,32 @@
+import openfl.filters.ShaderFilter;
+
+public var vcr:CustomShader;
+public var border:CustomShader;
+public var beatend:CustomShader;
+public var angel:CustomShader;
+
+function onCreatePost() {
+    vcr = new CustomShader("VCRMario85");
+    border = new CustomShader("VCRBorder");
+    beatend = new CustomShader("YCBUEndingShader");
+
+    angel = new CustomShader("AngelShader");
+    angel.data.pixel.value = [1, 1];
+    angel.data.stronk.value = [0, 1];
+
+    final af = [new ShaderFilter(angel)];
+    for(c in [camGame, camOther])
+        c.filters = af;
+
+    final vbbf = [new ShaderFilter(vcr), new ShaderFilter(border)];
+    for(c in [camGame, camHUD, camOther])
+        c.filters = (c.filters != null) ? c.filters.concat(vbbf) : vbbf;
+}
+
+function onUpdate(elapsed:Float) {
+    if (angel != null) {
+        angel.data.stronk.value[0] = FlxMath.lerp(angel.data.stronk.value[0], 0, FlxMath.bound(elapsed * 8, 0, 1));
+        angel.data.pixel.value[0] = FlxMath.lerp(angel.data.pixel.value[0], 1, FlxMath.bound(elapsed * 4, 0, 1));
+        angel.data.iTime.value = [Conductor.instance.playhead / 1000];
+    }
+}

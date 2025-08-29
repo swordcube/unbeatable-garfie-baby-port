@@ -1,0 +1,39 @@
+{
+    "id": "unbeatable-garfie-baby-port",
+
+    "title": "Unbeatable - Garfie Baby Port",
+    "description": "unebnebasattaable   whe are nitnendjnno  oyi uchasnnot beta yuis",
+
+    "apiVersion": "0.1.0",
+    "modVersion": "1.0.0",
+
+    "runGlobally": false,
+    "allowUnsafeScripts": true,
+
+    "levels": [
+        {
+            "id": "nintendo",
+            "name": "Nintendo",
+
+            "tagline": "YOU CANNOT BEAT US",
+            "characters": [null, "bf", null],
+
+            "hiddenSongs": {
+                "story": [],
+                "freeplay": []
+            },
+            "difficulties": {
+                "default": ["normal"]
+            },
+            "songs": ["unbeatable"],
+            "freeplayCategory": "main"
+        }
+    ],
+    "freeplayCategories": [
+        {
+            "id": "main",
+            "name": "Unbeatable - Main"
+        }
+    ],
+    "defaultCategory": "main"
+}

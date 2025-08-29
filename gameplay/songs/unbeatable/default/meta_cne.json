@@ -1,0 +1,82 @@
+{
+	"song": {
+		"title": null,
+		"mixes": [		],
+		"difficulties": [
+			"default_diff"
+		],
+		"timingPoints": [
+			{
+				"t": 0,
+				"b": 143,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 142657.342657343,
+				"b": 163,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 173577.588056116,
+				"b": 143,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 487423.741902272,
+				"b": 286,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 489102.063580594,
+				"b": 176,
+				"ts": [
+					4,
+					4
+				]
+			},
+			{
+				"t": 490465.69994423,
+				"b": 163,
+				"ts": [
+					4,
+					4
+				]
+			}
+		],
+		"artist": "Unknown",
+		"charter": "Unknown",
+		"tracks": null
+	},
+	"freeplay": {
+		"ratings": {		},
+		"icon": "bf",
+		"album": "vol1"
+	},
+	"game": {
+		"characters": {
+			"player": "ycbu_bf",
+			"spectator": "ycbu_gf",
+			"opponent": "mrSYS"
+		},
+		"scrollSpeed": {
+			"default_diff": 3
+		},
+		"allowOpponentMode": false,
+		"stage": "nesbeat",
+		"noteSkin": "default",
+		"uiSkin": "default",
+		"hudSkin": null
+	}
+}

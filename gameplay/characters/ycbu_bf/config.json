@@ -1,0 +1,172 @@
+{
+	"position": [
+		-150,
+		40
+	],
+	"scale": 1,
+	"flipX": true,
+	"isPlayer": true,
+	"singDuration": 4,
+	"atlas": {
+		"type": "sparrow",
+		"gridSize": null,
+		"path": "sprite"
+	},
+	"antialiasing": true,
+	"flipY": false,
+	"healthIcon": {
+		"scale": 1,
+		"isPixel": false,
+		"color": "#31B0D1",
+		"offset": [
+			0,
+			0
+		]
+	},
+	"camera": [
+		300,
+		0
+	],
+	"animations": {
+		"singRIGHTmiss": {
+			"fps": 24,
+			"prefix": "BF NOTE RIGHT MISS",
+			"offset": [
+				-15,
+				-1
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singRIGHT-alt": {
+			"fps": 24,
+			"prefix": "BF NOTE RIGHT ALT",
+			"offset": [
+				15,
+				-1
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singDOWN": {
+			"fps": 24,
+			"prefix": "BF NOTE DOWN0",
+			"offset": [
+				-22,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singLEFTmiss": {
+			"fps": 24,
+			"prefix": "BF NOTE LEFT MISS",
+			"offset": [
+				-15,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singLEFT-alt": {
+			"fps": 24,
+			"prefix": "BF NOTE LEFT ALT",
+			"offset": [
+				25,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singUP": {
+			"fps": 24,
+			"prefix": "BF NOTE UP0",
+			"offset": [
+				-31,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"hey": {
+			"fps": 24,
+			"prefix": "BF Hey",
+			"offset": [
+				-5,
+				-1
+			],
+			"indices": [],
+			"looped": false
+		},
+		"idle": {
+			"fps": 24,
+			"prefix": "BF idle dance",
+			"offset": [
+				-5,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singDOWNmiss": {
+			"fps": 24,
+			"prefix": "BF NOTE DOWN MISS",
+			"offset": [
+				-22,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singRIGHT": {
+			"fps": 24,
+			"prefix": "BF NOTE RIGHT0",
+			"offset": [
+				-15,
+				-1
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singDOWN-alt": {
+			"fps": 24,
+			"prefix": "BF NOTE DOWN ALT",
+			"offset": [
+				-22,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singUPmiss": {
+			"fps": 24,
+			"prefix": "BF NOTE UP MISS",
+			"offset": [
+				-31,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singLEFT": {
+			"fps": 24,
+			"prefix": "BF NOTE LEFT0",
+			"offset": [
+				-15,
+				0
+			],
+			"indices": [],
+			"looped": false
+		},
+		"singUP-alt": {
+			"fps": 24,
+			"prefix": "BF NOTE UP ALT",
+			"offset": [
+				29,
+				0
+			],
+			"indices": [],
+			"looped": false
+		}
+	}
+}
