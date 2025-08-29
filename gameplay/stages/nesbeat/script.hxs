@@ -3,15 +3,22 @@ public var duckbg:FlxSprite;
 var nesTweens:Array<FlxTween> = [];
 var nesTimers:Array<FlxTimer> = [];
 
-public var cutbg:FlxSprite;
-public var cutskyline:FlxSprite;
-public var cutstatic:FlxSprite;
+var cutbg:FlxSprite;
+var cutskyline:FlxSprite;
+var cutstatic:FlxSprite;
 
 function onLoadPost() {
     lofiTweensToBeCreepyTo(props.get("bg"));
     new FlxTimer().start(21.5, function(timer:FlxTimer) {
         lofiTweensToBeCreepyTo(props.get("bg"));
     }, 0);
+    
+    duckbg = props.get("duckbg");
+    duckbg.screenCenter();
+    duckbg.color = 0xFF5595DA;
+
+    final duckfloor = props.get("duckfloor");
+    duckfloor.screenCenter(FlxAxes.X);
 
     final blackinfrontobowser = props.get("blackinfrontobowser");
     blackinfrontobowser.screenCenter();
@@ -22,8 +29,29 @@ function onLoadPost() {
     final screencolor = props.get("screencolor");
     screencolor.screenCenter();
 
+    final ycbuCrosshair = props.get("ycbuCrosshair");
+    ycbuCrosshair.screenCenter();
+
+    final bowlava = props.get("bowlava");
+    bowlava.frames = getStageAtlas("neslava");
+    bowlava.animation.addByPrefix('idle', "lava hot ow ow its too hot aaa", 5, true);
+    bowlava.animation.play('idle');
+    bowlava.updateHitbox();
+
+    for (i in [cutbg = new FlxSprite(800, 300), cutskyline = new FlxSprite(800, 300)]) {
+        i.frames = getStageAtlas("staticbg");
+        i.scrollFactor.set(0.2, 0.2);
+        i.scale.set(2.61, 2.61);
+        i.updateHitbox();
+        i.animation.addByPrefix('duck', "staticbg duck", 15, true);
+        i.animation.addByPrefix('bowser', "staticbg castle", 15, true);
+        i.visible = false;
+        i.screenCenter(FlxAxes.XY);
+        i.antialiasing = true;
+        screencolor.container.insert(screencolor.container.members.indexOf(screencolor) + 1, i);
+    }
     cutstatic = new FlxSprite(800, 300);
-    cutstatic.frames = Paths.getSparrowAtlas("gameplay/stages/nesbeat/images/static");
+    cutstatic.frames = getStageAtlas("static");
     cutstatic.animation.addByPrefix('idle', "static idle", 15, true);
     cutstatic.animation.play('idle');
     cutstatic.scrollFactor.set(0.2, 0.2);
@@ -32,7 +60,7 @@ function onLoadPost() {
     cutstatic.visible = false;
     cutstatic.screenCenter(FlxAxes.XY);
     cutstatic.antialiasing = true;
-    insert(members.indexOf(screencolor) + 3, cutstatic);
+    screencolor.container.insert(screencolor.container.members.indexOf(screencolor) + 3, cutstatic);
 }
 
 function onCreatePost() {
@@ -42,6 +70,11 @@ function onCreatePost() {
         char.dance();
     }
     game.camGame.snapToTarget();
+
+    // allow gameplay scripts to access these publicly
+    game.scripts.publicVariables.set("cutbg", cutbg);
+    game.scripts.publicVariables.set("cutskyline", cutskyline);
+    game.scripts.publicVariables.set("cutstatic", cutstatic);
 }
 
 function lofiTweensToBeCreepyTo(sprite:FlxSprite) {

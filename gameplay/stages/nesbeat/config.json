@@ -36,6 +36,140 @@
                 }
             },
             {
+                "id": "duckbg",
+                "type": "box",
+                
+                "properties": {
+                    "color": "#FFFFFF",
+                    "alpha": 0,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "size": [1423, 800],
+                    "updateHitbox": true
+                }
+            },
+            {
+                "id": "ducktree",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "tree",
+                    "alpha": 0,
+                    
+                    "position": [-600, -100],
+                    "scroll": [0.6, 0.6],
+                    
+                    "scale": [6.5, 6.5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "duckleafs",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "arbust",
+                    "alpha": 0,
+                    
+                    "position": [1600, 400],
+                    "scroll": [0.8, 0.8],
+                    
+                    "scale": [6.5, 6.5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "duckfloor",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "grass",
+                    "alpha": 0,
+                    
+                    "position": [0, 550],
+                    "scroll": [1, 1],
+                    
+                    "scale": [6.5, 6.5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "bowbg",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "castle",
+                    "alpha": 0,
+                    
+                    "position": [-700, 800],
+                    "scroll": [0.4, 0.4],
+                    
+                    "scale": [5, 5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "bowbg2",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "castle2",
+                    "alpha": 0,
+                    
+                    "position": [-700, -400],
+                    "scroll": [0.4, 0.4],
+                    
+                    "scale": [5, 5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "bowplat",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "platnes",
+                    "alpha": 0,
+                    
+                    "position": [1600, 300],
+                    "scroll": [0.5, 0.5],
+                    
+                    "scale": [5, 5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
+                "id": "bowlava",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "neslava",
+                    "alpha": 0,
+                    
+                    "position": [-300, 900],
+                    "scroll": [0.85, 0.85],
+                    
+                    "scale": [5, 5],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
+                }
+            },
+            {
                 "id": "blackinfrontobowser",
                 "type": "box",
                 
@@ -56,7 +190,7 @@
                 
                 "properties": {
                     "color": "#000000",
-                    "alpha": 0.001,
+                    "alpha": 0,
                     
                     "position": [0, 0],
                     "scroll": [0, 0],
@@ -102,6 +236,23 @@
                 "properties": {
                     "position": [100, 150],
                     "camera": [0, 0]
+                }
+            },
+            {
+                "id": "ycbuCrosshair",
+                "type": "sprite",
+                
+                "properties": {
+                    "texture": "duckCrosshair",
+                    "visible": false,
+                    
+                    "position": [0, 0],
+                    "scroll": [0, 0],
+                    
+                    "scale": [28, 28],
+                    "updateHitbox": true,
+
+                    "antialiasing": false
                 }
             }
         ]

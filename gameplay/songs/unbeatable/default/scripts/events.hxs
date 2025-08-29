@@ -1,7 +1,10 @@
+import funkin.gameplay.song.EventData;
+
 var timer:FlxTimer = null;
 var camMovement:Bool = true;
+var camZooming:Bool = true;
 
-var noMiss:Bool = false;
+var defaultCamZoom:Float = 0.9;
 
 public var beatText:FlxText;
 public var beatText2:FlxText;
@@ -18,12 +21,29 @@ public var ycbuWhite:FlxSprite;
 public var lakitu:FlxSprite;
 public var gyromite:FlxSprite;
 
+public var dadChars:Map<String, Character> = ["" => null];
+public var dadSingFocus:Array = [];
+
 function onCountdownStart(e) {
     e.cancel();
 }
 
 function onCreatePost() {
+    camZoomingInterval = 0;
+
+    for (i in ["hunter", "koopa", "mrSYSwb"]) {
+        final char:Character = new Character(i);
+        char.setPosition(opponent.x, opponent.y);
+        char.drawComplex(FlxG.camera); // force onto vram
+        char.visible = false;
+        opponent.container.insert(opponent.container.members.indexOf(opponent) + 1, char);
+        dadChars.set(i, char);
+    }
+    dadChars.set("mrSYS", opponent);
+
+    dadSingFocus = [dadChars.get("mrSYS"), dadChars.get("mrSYSwb"), dadChars.get("hunter"), dadChars.get("koopa")];
     camHUD.alpha = 0;
+    
     for (i in [beatText = new FlxText(-230, 150, 1818, '', 24), beatText2 = new FlxText(-230, 150, 1818, '', 24)]) {
         i.setFormat(Paths.font("fonts/mariones"), 130, FlxColor.WHITE, FlxTextAlign.CENTER);
         i.scrollFactor.set();
@@ -85,11 +105,12 @@ function onCreatePost() {
     clownCar.animation.addByPrefix('idle', 'clown car anim', 24, true);
     clownCar.animation.play('idle');
     clownCar.scale.set(55, 55);
+    clownCar.scrollFactor.set();
     clownCar.antialiasing = false;
     clownCar.alpha = 0.0001;
     stage.layers[1].insert(stage.layers[1].members.indexOf(game.spectator) - 1, clownCar);
 
-    ycbuWhite = new FlxSprite().makeGraphic(FlxG.width / 0.9, FlxG.height / 0.9, FlxColor.WHITE);
+    ycbuWhite = new FlxSprite().makeSolid(FlxG.width / 0.9, FlxG.height / 0.9, FlxColor.WHITE);
     ycbuWhite.scrollFactor.set();
     ycbuWhite.screenCenter();
     ycbuWhite.alpha = 0;
@@ -116,12 +137,18 @@ function onCreatePost() {
     worldCombo = true;
 }
 
+function onUpdate(elapsed:Float) {
+    if(camZooming)
+        camGame.zoom = FlxMath.lerp(camGame.zoom, defaultCamZoom, FlxMath.getElapsedLerp(camGameZoomLerp, elapsed));
+}
+
 function cFloat(time:Float) {
     return (Conductor.instance.stepLength * time) / 1000;
 }
 
 function onStepHit(step:Int) {
     switch(step) {
+        // act 1
         case 16:
             FlxTween.tween(stage.props.get("blackinfrontobowser"), {alpha: 0.3}, 10, {ease: FlxEase.quadInOut});
 
@@ -129,6 +156,7 @@ function onStepHit(step:Int) {
             FlxTween.tween(camHUD, {alpha: 1}, 5, {ease: FlxEase.quadInOut});
         
         case 128:
+            camZoomingInterval = -1;
             opponent.alpha = spectator.alpha = player.alpha = 1;
             stage.props.get("blackinfrontobowser").alpha = 0;
 
@@ -190,11 +218,732 @@ function onStepHit(step:Int) {
                 playerStrums.members[i].x += 320;
             }
             noMiss = false;
+        
+        // act 2
+        case 1711: // aim your zapper guns
+            for (i in [opponent, playField.hud.iconP2])
+                FlxTween.tween(i, {alpha: 0}, 2, {ease: FlxEase.quadInOut});
+        
+        case 1728: // you cannot beat us
+            var tempY:Float = opponent.y;
+            setDad("hunter", true);
+
+            FlxTween.tween(playField.hud.iconP2, {alpha: 1}, 1, {ease: FlxEase.quadInOut});
+            if (playField.stats.health > 0.5) FlxTween.num(playField.stats.health, 0.5, 1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+
+            FlxTween.tween(stage.props.get("duckbg"), {alpha: 1}, 1, {ease: FlxEase.quadOut});
+            FlxTween.tween(stage.props.get("duckfloor"), {alpha: 1}, 2, {ease: FlxEase.quadOut});
+
+            stage.props.get("duckleafs").alpha = stage.props.get("ducktree").alpha = 1;
+            
+            FlxTween.tween(stage.props.get("duckleafs"), {x: 800}, 1, {startDelay: 1, ease: FlxEase.quadOut});
+            FlxTween.tween(stage.props.get("ducktree"), {x: 0}, 1, {startDelay: 1, ease: FlxEase.quadOut});
+
+            opponent.y += 800;
+            opponent.x -= 75;
+            opponent.alpha = 1;
+
+            FlxTween.tween(opponent, {y: (tempY)}, 1, {ease: FlxEase.quadInOut, onComplete: (twn:FlxTween) -> {
+                FlxTween.tween(opponent, {y: (tempY + 100)}, 1, {ease: FlxEase.quadInOut});
+            }});
+        
+        case 2362, 2364, 3020: // he go    o  o o !
+            opponent.playAnim("singUP", "sing", true);
+
+        case 2880, 2884, 2888, 2890, 2892, 2894: // crosshair
+            stage.props.get("ycbuCrosshair").visible = true;
+            stage.props.get("ycbuCrosshair").color = (stage.props.get("ycbuCrosshair").color == FlxColor.WHITE) ? FlxColor.RED : FlxColor.WHITE;
+            camHUD.visible = false;
+
+        case 2896:
+            for (i in 0...4) {
+                opponentStrums.members[i].alpha = 0;
+                opponentStrums.members[i].x -= 1000;
+                playerStrums.members[i].x -= 320;
+            }
+            stage.props.get("ycbuCrosshair").visible = false;
+            camHUD.visible = true;
+        
+        case 3023:
+            setHeads("gyromite");
+        
+        case 3024:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 3032, 3036, 3048, 3052, 3064, 3068, 3080, 3084, 3096, 3100, 3112, 3116, 3128, 3132, 3144, 3148:
+            reverseHeads();
+        
+        case 3152:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0;
+
+            for (i in [opponent, playField.hud.iconP2])
+                FlxTween.tween(i, {alpha: 0}, 2, {ease: FlxEase.quadInOut});
+
+            for (i in 0...4) {
+                opponentStrums.members[i].alpha = 1;
+                opponentStrums.members[i].x += 1000;
+                playerStrums.members[i].x += 320;
+            }
+
+        // act 3
+        case 3154: // discover new worlds
+            FlxTween.tween(stage.props.get("duckleafs"), {y: stage.props.get("duckleafs").y + 1200}, 1.5, {ease: FlxEase.quadIn});
+            FlxTween.tween(stage.props.get("ducktree"), {y: stage.props.get("ducktree").y + 1200}, 1.5, {ease: FlxEase.quadIn});
+            FlxTween.tween(stage.props.get("duckfloor"), {y: stage.props.get("duckfloor").y + 1200}, 1.5, {ease: FlxEase.quadIn, onComplete: function(twn:FlxTween) {
+                stage.props.get("duckleafs").visible = stage.props.get("ducktree").visible = stage.props.get("duckfloor").visible = false; // unload lol
+            }});
+            FlxTween.color(stage.props.get("duckbg"), 2, stage.props.get("duckbg").color, 0xFF000000, {ease: FlxEase.cubeInOut});
+        
+        case 3162:
+            new FlxTimer().start(cFloat(0.5), function(timer:FlxTimer) {
+                stage.props.get("bowbg").alpha = stage.props.get("bowbg2").alpha = stage.props.get("bowlava").alpha = stage.props.get("bowplat").alpha = 1;
+                FlxTween.tween(stage.props.get("bowbg2"), {y: stage.props.get("bowbg2").y + 200}, 0.5, {ease: FlxEase.quadOut});
+                if (playField.stats.health > 0.5) FlxTween.num(playField.stats.health, 0.5, 1, {ease: FlxEase.quadOut}, (val) -> {
+                    playField.stats.health = val;
+                    playField.hud.updateHealthBar();
+                });
+            }, 1);
+        
+        case 3165:
+            new FlxTimer().start(cFloat(0.5), function(timer:FlxTimer) {
+                FlxTween.tween(stage.props.get("bowbg"), {y: stage.props.get("bowbg").y - 1000}, 0.5, {ease: FlxEase.quadOut});
+            });
+        
+        case 3168:
+            new FlxTimer().start(cFloat(0.5), function(timer:FlxTimer) {
+                FlxTween.tween(stage.props.get("bowplat"), {x: 800}, 0.5, {ease: FlxEase.quadOut, onComplete: function(twn:FlxTween) {
+                    FlxTween.tween(stage.props.get("bowplat"), {x: 600}, 1.5, {type: FlxTween.PINGPONG, loopDelay: 0.5});
+                }});
+            });
+
+        case 3184: // you cannot beat us
+            opponent.alpha = 1;
+            setDad("koopa", true);
+
+            var tempY:Float = opponent.y;
+            opponent.y += 800;
+            opponent.x = dadChars.get("mrSYS").x;
+            
+            FlxTween.tween(stage.props.get("bowlava"), {y: 550}, 1.5, {ease: FlxEase.quadInOut, onComplete: function(twn:FlxTween) {
+                FlxTween.tween(stage.props.get("bowlava"), {y: 775}, 1.25, {ease: FlxEase.quadInOut, onComplete: function(twn:FlxTween) {
+                    FlxTween.tween(stage.props.get("bowlava"), {y: 750}, 0.5, {ease: FlxEase.quadInOut});
+                }});
+            }});
+            FlxTween.tween(playField.hud.iconP2, {alpha: 1}, 1.5, {ease: FlxEase.expoOut});
+            FlxTween.tween(opponent, {y: (tempY - 100)}, 1, {ease: FlxEase.quadInOut, onComplete: function(twn:FlxTween) {
+                FlxTween.tween(opponent, {y: (tempY)}, 1, {ease: FlxEase.quadInOut});
+            }});
+        
+        case 3216:
+            stage.props.get("screencolor").alpha = 0.7;
+            FlxTween.tween(stage.props.get("screencolor"), {alpha: 0}, (1 / (Conductor.instance.bpm / 60)));
+
+        case 3344: // firebar
+            fireBar.visible = true;
+            fireBar.angle = (Options.downscroll) ? -180 : 180;
+            fireBar.y = (Options.downscroll) ? -400 : 750;
+            FlxTween.tween(fireBar, {y: (Options.downscroll) ? -100 : 450}, (2 / (Conductor.instance.bpm / 60)), {ease: FlxEase.expoOut});
+        
+        case 3856: // bye firebar
+            FlxTween.tween(fireBar, {y: 750}, (2 / (Conductor.instance.bpm / 60)), {ease: FlxEase.backIn});
+            new FlxTimer().start((2 / (Conductor.instance.bpm / 60)), function(tmr:FlxTimer) {
+                fireBar.visible = false;
+            });
+        
+        case 3991: // moved it back a curstep just in case
+            setHeads("lakitu");
+        
+        case 3992:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 3968:
+            for (i in 0...4)
+                FlxTween.tween(opponentStrums.members[i], {alpha: 0}, cFloat(16), {ease: FlxEase.quadInOut});
+
+            FlxTimer.wait(cFloat(16), (_) -> opponentStrums.x -= 1000);
+        
+        case 3976:
+            for (i in 0...4)
+                FlxTween.tween(playerStrums.members[i], {x: playerStrums.members[i].x - 320}, cFloat(16), {ease: FlxEase.cubeInOut});
+        
+        case 4120:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+        
+        case 4246: // not needed but ima keep just in case
+            setHeads("lakitu");
+        
+        case 4247: // note to self check why this number feels weird
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 4256, 4260, 4272, 4276, 4288, 4292, 4304, 4308, 4376, 4394, 4408:
+            reverseHeads();
+        
+        case 4312:
+            FlxTween.tween(stage.props.get("blackinfrontobowser"), {alpha: 0.7}, 5, {ease: FlxEase.quadInOut});
+            stopHeads();
+            startHeads();
+        
+        case 4424: // clown car
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0;
+
+            clownCar.alpha = 1;
+            clownCar.screenCenter();
+            clownCar.y += 175;
+            clownCar.color = FlxColor.BLACK;
+
+            setDad("mrSYS", true);
+
+            for (i in [
+                stage.props.get("duckleafs"), stage.props.get("ducktree"), stage.props.get("duckfloor"), stage.props.get("duckbg"),
+                stage.props.get("bowbg"), stage.props.get("bowbg2"), stage.props.get("bowplat"), stage.props.get("bowlava")
+            ]) i.visible = false;
+
+            new FlxTimer().start(0.25, function(tmr:FlxTimer) {
+                FlxTween.color(clownCar, 0.4, FlxColor.BLACK, FlxColor.WHITE);
+                FlxTween.tween(clownCar, {y: -1100}, 2, {ease: FlxEase.quintIn});
+                FlxTween.tween(clownCar.scale, {x: 4, y: 4}, 2, {ease: FlxEase.cubeOut});
+            });
+        
+        case 4704:
+            ycbuWhite.color = FlxColor.BLACK;
+            FlxTween.tween(camHUD, {alpha: 0}, 0.5, {ease: FlxEase.quadInOut});
+            FlxTween.tween(camGame, {alpha: 0}, 0.5, {ease: FlxEase.quadInOut}); // replace this with fade later
+            FlxTween.tween(ycbuWhite, {alpha: 1}, 0.5, {ease: FlxEase.quadInOut});
+
+        case 4736: // lakitu chant
+            camGame.alpha = 1;
+
+            lakitu.container.remove(lakitu, true);
+            dadChars["hunter"].container.insert(dadChars["hunter"].container.members.indexOf(dadChars["hunter"]) + 1, lakitu); // TODO: do the math for this earlier
+            
+            camMovement = false;
+            camZooming = false;
+            
+            lakitu.setPosition(-600, FlxG.height);
+            lakitu.visible = true;
+            
+            FlxTween.tween(lakitu, {x: -50}, 1, {ease: FlxEase.quadOut});
+            FlxTween.tween(lakitu, {y: 400}, 1, {ease: FlxEase.quadIn});
+            FlxTween.tween(camGame, {zoom: 1.4}, 5.9, {ease: FlxEase.quintIn});
+        
+        case 4752: // bowser chant (TODO: FIX POSITIONING)
+            setDad("koopa", true);
+
+            // dad = dadChars["koopa"];
+            opponent.setPosition(865, FlxG.height);
+            opponent.visible = true;
+
+            FlxTween.tween(opponent, {y: -54}, 1.5, {ease: FlxEase.backOut});
+        
+        case 4768: // gyromite chant
+            gyromite.container.remove(gyromite, true);
+            dadChars["koopa"].container.insert(dadChars["koopa"].container.members.indexOf(dadChars["koopa"]) + 1, gyromite); // TODO: do the math for this earlier
+            
+            gyromite.setPosition(1300, FlxG.height);
+            gyromite.visible = true;
+            
+            FlxTween.tween(gyromite, {x: 850}, 1, {ease: FlxEase.quadOut});
+            FlxTween.tween(gyromite, {y: 400}, 1, {ease: FlxEase.quadIn});
+        
+        case 4784: // hunter chant
+            var tempX = dadChars["mrSYS"].x; // TODO: do the math for this with traces
+            var tempY = dadChars["mrSYS"].y;
+            setDad("hunter", false);
+
+            // dad = dadChars["hunter"];
+            opponent.setPosition(tempX - 470, FlxG.height);
+            opponent.visible = true;
+            
+            // opponent.alpha = 1;
+            FlxTween.tween(opponent, {y: tempY - 180}, 1.5, {ease: FlxEase.backOut});
+            dadSingFocus = [dadChars["hunter"]];
+        
+        case 4800:
+            ycbuWhite.color = FlxColor.WHITE;
+            lakitu.visible = gyromite.visible = dadChars["hunter"].visible = dadChars["koopa"].visible = false;
+
+            camZooming = true;
+            defaultCamZoom = 0.9;
+
+            camMovement = true;
+        
+        case 4812: // fade in sys wb
+            dadSingFocus = [dadChars["mrSYS"], dadChars["mrSYSwb"], dadChars["hunter"], dadChars["koopa"]];
+            setDad("mrSYSwb", true);
+            opponent.setPosition(dadChars["mrSYS"].x, dadChars["mrSYS"].y);
+            opponent.alpha = 0.0001;
+            FlxTween.tween(opponent, {alpha: 1}, 0.75, {ease: FlxEase.cubeOut});
+
+        // act 4
+        case 4816: // sys is back
+            setDad("mrSYS", true);
+            opponent.alpha = 1;
+
+            FlxTween.tween(stage.props.get("blackinfrontobowser"), {alpha: 0}, 0.7, {ease: FlxEase.quadInOut});
+            FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+            FlxTween.tween(camHUD, {alpha: 1}, 0.25, {ease: FlxEase.quadOut});
+            
+            angel.data.stronk.value[0] = 0.325;
+            if (playField.stats.health > 0.5) {
+                playField.stats.health = 0.5;
+                playField.hud.updateHealthBar();
+            }
+
+        case 5072:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+
+            setDad("hunter", true);
+            setIcon(["hunter", "mrSYS"]);
+            opponent.setPosition(345, 200);
+
+            iconHunter.alpha = 0;
+            FlxTween.tween(iconHunter, {alpha: 1}, 0.2, {ease: FlxEase.quadOut});
+            
+            angel.data.stronk.value[0] = 0.325;
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+
+            FlxTween.num(playField.stats.health, playField.stats.health - 0.25, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            cutbg.visible = cutstatic.visible = true;
+            cutbg.animation.play('duck');
+            cutskyline.visible = false;
+        
+        case 4943:
+            setHeads("you cannot beat us lololol");
+        
+        case 4944:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+
+        case 5072:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+
+            setDad("hunter", true);
+            setIcon(["hunter", "mrSYS"]);
+            opponent.setPosition(345, 200);
+
+            iconHunter.alpha = 0;
+            FlxTween.tween(iconHunter, {alpha: 1}, 0.2, {ease: FlxEase.quadOut});
+            
+            angel.data.stronk.value[0] = 0.325;
+
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+
+            FlxTween.num(playField.stats.health, playField.stats.health - 0.25, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            cutbg.visible = cutstatic.visible = true;
+            cutbg.animation.play('duck');
+            cutskyline.visible = false;
+        
+        case 5199:
+            setHeads("gyromite");
+        
+        case 5200:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 5328:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+
+            setDad("koopa", true);
+            setIcon(["koopa", "hunter", "mrSYS"]);
+            opponent.setPosition(345, 100); // TODO: the right thing
+
+            iconBowser.alpha = 0;
+            FlxTween.tween(iconBowser, {alpha: 1}, 0.2, {ease: FlxEase.quadOut});
+
+            FlxTween.num(playField.stats.health, playField.stats.health - 0.25, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            cutskyline.animation.play('bowser');
+            cutskyline.visible = true;
+            
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+        
+        case 5455:
+            setHeads("lakitu");
+        
+        case 5456:
+            angel.data.stronk.value[0] = 0.325;
+            showHeads();
+        
+        case 5584:
+            angel.data.stronk.value[0] = 0.325;
+            ycbuLightningL.alpha = ycbuLightningR.alpha = ycbuHeadL.alpha = ycbuHeadR.alpha = 0.001;
+            /* triggers universal 18 "0, 0"
+                var split:Array<String> = value2.split(',');
+                dupeTimer = Std.parseInt(split[1]);
+                shit = Std.parseFloat(split[0]);
+            */
+            ycbuWhite.alpha = 1;
+            FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+
+            stage.props.get("blackinfrontobowser").alpha = 0.85;
+            cutbg.visible = cutskyline.visible = cutstatic.visible = false;
+        
+        case 5840:
+            /* triggers universal 18 "0.03, 1"
+                var split:Array<String> = value2.split(',');
+                dupeTimer = Std.parseInt(split[1]);
+                shit = Std.parseFloat(split[0]);
+            */
+            var tempX = opponent.x;
+            var tempY = opponent.y;
+            setDad("mrSYS", true);
+            setIcon(["mrSYS", "hunter", "koopa"]);
+            // opponent.alpha = 0;
+            // dad.visible = false;
+            // dad = dadChars["mrSYS"];
+            // healthBar.createFilledBar(dad.iconColor, 0xFF31b0d1);
+        	// healthBar.updateBar();
+            opponent.setPosition(tempX, tempY); // TODO: the right thing
+            // dad.visible = true;
+            // opponent.alpha = 1;
+            
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+
+            for (i in [
+                stage.props.get("duckleafs"), stage.props.get("ducktree"), stage.props.get("duckfloor"), stage.props.get("duckbg"),
+                stage.props.get("bowbg"), stage.props.get("bowbg2"), stage.props.get("bowplat"), stage.props.get("bowlava")
+            ]) i.visible = false;
+
+            cutbg.visible = cutstatic.visible = cutskyline.visible = false;
+            stage.props.get("blackinfrontobowser").alpha = 0;
+            
+            ycbuWhite.alpha = gyromite.alpha = lakitu.alpha = 1;
+            FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+            
+            lakitu.x = 0;
+            gyromite.x = 800;
+            gyromite.y = lakitu.y = 400;
+
+            gyromite.container.remove(gyromite, true);
+            beatText.container.insert(beatText.container.members.indexOf(beatText) + 1, gyromite);
+
+            var newhealth:Float = (playField.stats.health * 2) - 1;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+        case 5904: // add hunter
+            setDad("hunter", true);
+            setIcon(["hunter", "koopa", "mrSYS"]);
+
+            // iconOrder.push(iconOrder.shift());
+
+            // opponent.alpha = 0;
+            // dad.visible = false;
+            // var tempX = dad.x;
+            // var tempY = dad.y;
+            // dad = dadChars["hunter"];
+            // healthBar.createFilledBar(dad.iconColor, 0xFF31b0d1);
+        	// healthBar.updateBar();
+            opponent.setPosition(345, 200);
+            // dad.visible = true;
+            // opponent.alpha = 1;
+            
+            FlxTween.num(playField.stats.health, playField.stats.health - 0.25, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            angel.data.stronk.value[0] = 0.325;
+
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+
+            cutbg.visible = cutstatic.visible = true;
+            cutskyline.visible = false;
+            cutbg.animation.play('duck');
+        
+        case 5968: // add sys
+            setDad("mrSYS", false);
+            setIcon(["mrSYS", "hunter", "koopa"]);
+            // iconOrder.push(iconOrder.shift());
+            // iconOrder.push(iconOrder.shift()); // move to sys, not bowser
+
+            // dad = dadChars["mrSYS"];
+            // healthBar.createFilledBar(dad.iconColor, 0xFF31b0d1);
+        	// healthBar.updateBar();
+            opponent.setPosition(400, 100);
+            // dad.visible = true;
+            // opponent.alpha = 1;
+
+            opponent.y += 1000;
+			FlxTween.tween(opponent, {y: opponent.y - 1000}, 1.25, {ease: FlxEase.backOut});
+
+            dadChars["hunter"].container.remove(dadChars["hunter"], true);
+            dadChars["mrSYS"].container.insert(dadChars["mrSYS"].container.members.indexOf(dadChars["mrSYS"]) - 1, dadChars["hunter"]);
+            
+            var newhealth:Float = (playField.stats.health * 2) - 1;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            
+            FlxTween.tween(dadChars["hunter"], {x: dadChars["hunter"].x - 425, y: dadChars["hunter"].y + 50}, 0.75, {ease: FlxEase.cubeOut});
+            // dad = dadChars["mrSYS"];
+        
+        case 6032: // add bowser
+            angel.data.stronk.value[0] = 0.325;
+            setDad("mrSYSwb", false);
+
+            dadChars["mrSYS"].visible = false;
+            setIcon(["koopa", "mrSYS", "hunter"]);
+
+            // bowserMainSinging = false;
+            dadSingFocus = [dadChars["mrSYS"], dadChars["mrSYSwb"], dadChars["hunter"]];
+            
+            // healthBar.createFilledBar(FlxColor.fromRGB(10, 255, 137),
+                // FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
+            
+            playField.hud.script.get("healthBar").createFilledBar(FlxColor.fromRGB(10, 255, 137), 0xFF31b0d1);
+            playField.hud.script.get("healthBar").updateBar();
+
+            var newhealth:Float = (playField.stats.health * 2) - 1;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            cutskyline.visible = true;
+
+            dadChars["koopa"].container.remove(dadChars["koopa"], true);
+            opponent.container.insert(opponent.container.members.indexOf(opponent) - 1, dadChars["koopa"]);
+
+            dadChars["koopa"].setPosition(1515, 846);
+            dadChars["koopa"].visible = true;
+            FlxTween.tween(dadChars["koopa"], {x: dadChars["koopa"].x - 700, y: dadChars["koopa"].y - 700}, 1.25, {ease: FlxEase.backOut});
+        
+            // angel.data.stronk.value[0] = 0.1;
+        case 6096:
+            setDad("mrSYS", true);
+            setIcon(["mrSYS", "hunter", "koopa"]);
+
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+
+            // bowserMainSinging = true;
+            dadSingFocus = [dadChars["mrSYS"], dadChars["mrSYSwb"], dadChars["hunter"], dadChars["koopa"]];
+
+            stage.props.get("blackinfrontobowser").alpha = 0;
+            ycbuWhite.alpha = gyromite.alpha = lakitu.alpha = 1;
+            cutbg.visible = cutskyline.visible = cutstatic.visible = dadChars["koopa"].visible = dadChars["hunter"].visible = false;
+            
+            lakitu.x = 0;
+            gyromite.x = 800;
+            gyromite.y = lakitu.y = 400;
+
+            gyromite.container.remove(gyromite, true);
+            beatText.container.insert(beatText.container.members.indexOf(beatText) + 1, gyromite);
+
+            FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+        
+        case 6112:
+            setDad("hunter", true);
+            setIcon(["hunter", "mrSYS", "koopa"]);
+            opponent.setPosition(345, 200);
+
+            ycbuWhite.alpha = 1;
+            ycbuWhite.visible = true;
+
+            var tempY = opponent.y;
+            opponent.y += 950;
+            FlxTween.tween(opponent, {y: tempY}, 1.25, {ease: FlxEase.backOut});
+        
+        case 6128:
+            setDad("mrSYS", true);
+            setIcon(["mrSYS", "hunter", "koopa"]);
+            
+            var newhealth:Float = (playField.stats.health * 2) - 0.5;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            
+            ycbuWhite.alpha = 0;
+            // FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+        
+        case 6144:
+            var newhealth:Float = (playField.stats.health * 2) - 0.5;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+
+            opponent.alpha = 0;
+            ycbuWhite.alpha = 1;
+            gyromite.screenCenter(FlxAxes.X);
+            gyromite.alpha = 1;
+            gyromite.visible = true;
+            gyromite.y = FlxG.height;
+            FlxTween.tween(gyromite, {y: 200}, 1.25, {ease: FlxEase.backOut});
+            // remove(ycbuGyromite);
+            // insert(members.indexOf(otherBeatText) + 1, ycbuGyromite);
+        
+        case 6160:
+            gyromite.setPosition(800, 400);
+            opponent.alpha = 1;
+            ycbuWhite.alpha = gyromite.alpha = lakitu.alpha = 1;
+            FlxTween.tween(ycbuWhite, {alpha: 0}, 0.25, {ease: FlxEase.quadOut});
+
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+        
+        case 6176:
+            var newhealth:Float = (playField.stats.health * 2) - 0.5;
+            if (newhealth < 0.2) newhealth = 0.2;
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+
+            opponent.alpha = gyromite.alpha = 0;
+            ycbuWhite.alpha = 1;
+            lakitu.screenCenter(FlxAxes.X);
+            lakitu.visible = true;
+            lakitu.y = FlxG.height;
+            FlxTween.tween(lakitu, {y: 200}, 1.25, {ease: FlxEase.backOut});
+            lakitu.alpha = 1;
+        
+        case 6192:
+            lakitu.alpha = 0;
+
+        case 6196:
+            FlxTween.num(0, 1000000, 0.75, {ease: FlxEase.cubeOut}, function(v) {
+                executeEvent({
+                    name: "YCBU Text",
+                    time: Conductor.instance.playhead,
+                    params: ['score;' + Math.floor(v), true, false, false]
+                });
+            });
+
+        case 6208:
+            var newhealth:Float = (playField.stats.health * 2) - 0.5;
+            if (newhealth < 0.2) newhealth = 0.2;
+
+            FlxTween.num(playField.stats.health, newhealth / 2, 0.1, {ease: FlxEase.quadOut}, (val) -> {
+                playField.stats.health = val;
+                playField.hud.updateHealthBar();
+            });
+            setDad("koopa", true);
+            setIcon(["koopa", "mrSYS", "hunter"]);
+            opponent.setPosition(345, 100);
+
+            var tY = opponent.y;
+            opponent.y += 1000;
+            opponent.alpha = 1;
+            FlxTween.tween(opponent, {y: tY}, 1.25, {ease: FlxEase.backOut});
+        
+        case 6223:
+            // sysMainSinging = true;
+            dadSingFocus = [dadChars["mrSYS"], dadChars["mrSYSwb"]];
+
+        case 6224:
+            estatica.alpha = 0.6;
+            FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+            
+            setDad("mrSYSwb", true);
+            opponent.alpha = 1;
+            opponent.setPosition(dadChars["mrSYS"].x, dadChars["mrSYS"].y);
+
+            setIcon(["koopa", "mrSYS", "hunter"]);
+            stage.props.get("blackinfrontobowser").alpha = 0;
+
+            playField.hud.script.get("healthBar").createFilledBar(0xFFadddff, 0xFF31b0d1);
+            playField.hud.script.get("healthBar").updateBar();
+
+            ycbuWhite.alpha = gyromite.alpha = lakitu.alpha = 1;
+            lakitu.x = 0;
+            gyromite.x = 800;
+            gyromite.y = lakitu.y = 400;
+            ycbuWhite.color = FlxColor.BLACK;
+            ycbuWhite.alpha = 1;
+
+            ycbuWhite.container.remove(ycbuWhite, true);
+            beatText.container.insert(beatText.container.members.indexOf(beatText) - 1, ycbuWhite);
+            
+            beatText.container.remove(beatText, true);
+            ycbuWhite.container.insert(ycbuWhite.container.members.indexOf(ycbuWhite) + 1, beatText);
+            
+            gyromite.container.remove(gyromite, true);
+            beatText.container.insert(beatText.container.members.indexOf(beatText) + 1, gyromite);
+
+            dadChars["hunter"].container.remove(dadChars["hunter"], true);
+            lakitu.container.insert(lakitu.container.members.indexOf(lakitu) + 1, dadChars["hunter"]);
+            
+            dadChars["koopa"].container.remove(dadChars["koopa"], true);
+            lakitu.container.insert(lakitu.container.members.indexOf(lakitu) + 1, dadChars["koopa"]);
+
+            opponent.container.remove(opponent, true);
+            lakitu.container.insert(lakitu.container.members.indexOf(dadChars["hunter"]) + 1, opponent);
+            
+            lakitu.container.remove(lakitu, true);
+            gyromite.container.insert(gyromite.container.members.indexOf(gyromite) + 1, lakitu);
+            
+            gyromite.y = lakitu.y -= 350;
+            dadChars["hunter"].visible = dadChars["koopa"].visible = true;
+
+            dadChars["hunter"].setPosition(-80, 250);
+            dadChars["koopa"].setPosition(816, 146);
+
+            dadChars["hunter"].animation.play("idle", true);
+            dadChars["koopa"].animation.play("idle", true);
+        
+        case 6239:
+            // sysMainSinging = false;
+            dadSingFocus = [dadChars["mrSYS"], dadChars["mrSYSwb"], dadChars["hunter"], dadChars["koopa"]];
+        
+        case 6256:
+            gyromite.alpha = lakitu.alpha = dadChars["hunter"].alpha = dadChars["koopa"].alpha = 0;
     }
+}
+
+function executeEvent(d) {
+    eventRunner.execute(new EventData(d.time, {array: d.params}, d.name));
 }
 
 function onEvent(e) {
     switch(e.eventType.toLowerCase()) {
+        case "camera pan":
+            opponent.visible = e.params.char == 0;
+            player.visible = spectator.visible = e.params.char == 1;
+            stage.props.get("blackBarThingie").alpha = e.params.char == 1 ? 0.3 : 0;
+            
+            if(estatica != null) {
+                estatica.alpha = 0.6;
+                FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+            }
+        
         case "ycbu text":
             beatText.color = 0xFFF87858;
             beatText.text = StringTools.replace(e.params.array[0], ";", "\n");
@@ -202,11 +951,11 @@ function onEvent(e) {
             beatText.updateHitbox();
             beatText.screenCenter();
 
-            // for (i in [ycbuHeadL, ycbuHeadR])
-            //     if (i.animation.name != "LOL") i.animation.play(i.animation.name, true);
+            for (i in [ycbuHeadL, ycbuHeadR])
+                if (i.animation.name != "LOL") i.animation.play(i.animation.name, true);
 
-            // if (_.event.params[2]) gyromite.animation.play(gyromite.animation.name, true);
-            // if (_.event.params[3]) lakitu.animation.play(lakitu.animation.name, true);
+            if (e.params.array[2]) gyromite.animation.play(gyromite.animation.name, true);
+            if (e.params.array[3]) lakitu.animation.play(lakitu.animation.name, true);
     
             var isBlack = e.params.array[1];
     
@@ -217,42 +966,104 @@ function onEvent(e) {
                 beatText.color = isBlack ? 0xFF000000 : 0xFFFFFFFF;
             });
 
-        case "camera pan":
-            opponent.visible = e.params.char == 0;
-            player.visible = spectator.visible = e.params.char == 1;
-            stage.props.get("blackBarThingie").alpha = e.params.char == 1 ? 0.3 : 0;
-            
-            if(estatica != null) {
-                estatica.alpha = 0.6;
-                FlxTween.tween(estatica, {alpha: 0.05}, 0.5, {ease: FlxEase.quadInOut});
+        case "hunter duck":
+            var elpato:Int = FlxG.random.int(0, 2);
+            var track:Int = FlxG.random.int(0, 4);
+            var timeDuck:Float = 1;
+
+            var duck:FlxSprite = new FlxSprite(250, 650);
+            duck.frames = stage.getStageAtlas("duck" + elpato);
+            duck.animation.addByPrefix('upB', "duck up", 12, true);
+            duck.animation.addByPrefix('idleB', "duck fly", 12, true);
+            duck.scrollFactor.set(0.7, 0.7);
+            duck.scale.set(6.5, 6.5);
+            duck.updateHitbox();
+            duck.antialiasing = false;
+            duck.animation.play('upB');
+            stage.layers[0].insert(stage.layers[0].members.indexOf(stage.props.get("duckfloor")) - 1, duck);
+
+            switch (track) {
+                case 0:
+                    timeDuck = 3;
+                    duck.y = -200;
+                    duck.x = 1500;
+                    duck.animation.play('idleB');
+                    duck.flipX = true;
+                    FlxTween.tween(duck, {x: -400, y: 300}, timeDuck);
+                case 1:
+                    timeDuck = 3.5;
+                    duck.y = 800;
+                    duck.x = 100;
+                    FlxTween.tween(duck, {x: 600, y: -500}, timeDuck);
+                case 2:
+                    timeDuck = 3;
+                    duck.animation.play('idleB');
+                    duck.y = 0;
+                    duck.x = -300;
+                    FlxTween.tween(duck, {x: 1600, y: 300}, timeDuck);
+                case 3:
+                    timeDuck = 3;
+                    duck.y = 200;
+                    duck.x = 1500;
+                    duck.flipX = true;
+                    FlxTween.tween(duck, {x: 200, y: -300}, timeDuck);
+                case 4:
+                    timeDuck = 3;
+                    duck.y = 0;
+                    duck.x = 100;
+                    FlxTween.tween(duck, {x: 1600, y: -500}, timeDuck);
             }
+
+            new FlxTimer().start(timeDuck, function(tmr:FlxTimer) {
+                duck.destroy();
+            });
+    }
+}
+
+function onNoteHit(e) {
+    if(e.note.strumLine == opponentStrums)
+        e.characters = dadSingFocus;
+
+    switch(e.note.type) {
+        case "Alt Animation":
+            e.singAnimSuffix = "-alt";
+
+        case "No Animation":
+            e.playSingAnim = false;
+
+        case "Hey!":
+            e.playSingAnim = false;
+            player.playAnim("hey", "sing", true);
+            spectator.playAnim("hey", "sing", true);
+
+        case "Yoshi Note":
+            e.playSingAnim = false;
+            dadChars["koopa"].playAnim(["singLEFT", "singDOWN", "singUP", "singRIGHT"][e.note.direction], "sing", true);
+            dadChars["koopa"].holdTimer = Math.POSITIVE_INFINITY;
     }
 }
 
 var singCamMovements = [
-    "singLEFT" => [-12, 0],
-    "singDOWN" => [0, 12],
-    "singUP" => [0, -12],
-    "singRIGHT" => [12, 0]
+    "singLEFT" => [-20, 0],
+    "singDOWN" => [0, 20],
+    "singUP" => [0, -20],
+    "singRIGHT" => [20, 0]
 ];
-var tempPoint:FlxPoint = new FlxPoint();
+// var tempPoint:FlxPoint = new FlxPoint();
 
 function onCameraMove(e) {
-    final pos = player.getCameraPosition(tempPoint);
-    e.position.set(pos.x, pos.y);
-
-    final focusedCharacter:Character = (curCameraTarget == 0) ? opponent : player;
-    for(key => value in singCamMovements) {
-        if(focusedCharacter.animation.name != null && StringTools.startsWith(focusedCharacter.animation.name, key)) {
-            e.position.x += value[0];
-            e.position.y += value[1];
+    // final pos = player.getCameraPosition(tempPoint);
+    // e.position.set(pos.x, pos.y);
+    e.position.set(620, 450);
+    if(camMovement) {
+        final focusedCharacter:Character = (curCameraTarget == 0) ? opponent : player;
+        for(key => value in singCamMovements) {
+            if(focusedCharacter.animation.name != null && StringTools.startsWith(focusedCharacter.animation.name, key)) {
+                e.position.x += value[0];
+                e.position.y += value[1];
+            }
         }
     }
-}
-
-function onNoteMiss(e) {
-    if(noMiss)
-        playField.stats.health = -999999;
 }
 
 function showHeads() {
@@ -329,4 +1140,26 @@ function setHeads(type:String) {
             ycbuHeadR.screenCenter(FlxAxes.X);
             ycbuHeadR.x += 445;
     }
+}
+
+function setDad(c:String, ?hidePrev:Bool) {
+    hidePrev ??= true;
+    
+    if (hidePrev)
+        opponent.visible = false;
+    
+    opponent = dadChars[c];
+    playField.hud.script.get("healthBar").createFilledBar(opponent.healthColor, 0xFF31b0d1);
+    playField.hud.script.get("healthBar").updateBar();
+    opponent.visible = true;
+    setIcon([c]);
+}
+
+function setIcon(people:Array<String>) {
+    for (name => icon in ["mrSYS" => iconSys, "hunter" => iconHunter, "koopa" => iconBowser])
+        icon.visible = people.contains(name);
+
+    if (people[0] == "mrSYS") iconOrder = [iconSys, iconHunter, iconBowser];
+    if (people[0] == "hunter") iconOrder = [iconHunter, iconBowser, iconSys];
+    if (people[0] == "koopa") iconOrder = [iconBowser, iconSys, iconHunter];
 }

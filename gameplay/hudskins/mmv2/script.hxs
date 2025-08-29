@@ -71,6 +71,7 @@ function generateHealthBar() {
     scoreText = new FlxText(healthBarBG.x + (healthBarBG.width - 190), healthBarBG.y + 43, 0, "");
     scoreText.setFormat(Paths.font("fonts/mario2"), 15, gbcolor, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     scoreText.borderSize = 1.25;
+    scoreText.zIndex = 2;
     add(scoreText);
 
     botplayText = new FlxText(400, playField.playerStrumLine.y, 0, "BOTPLAY", 32);
@@ -193,7 +194,10 @@ function onUpdate(elapsed:Float) {
     }
     healthBar.setRange(playField.stats.minHealth, playField.stats.maxHealth);
     healthBar.value = playField.stats.displayedHealth;
+    positionIcons();
+}
 
+function onUpdatePost(elapsed:Float) {
     // final iconSpeed:Float = Math.exp(-elapsed * 9);
     // iconP2.scale.set(
     //     FlxMath.lerp((150 * iconP2.size.x) / iconP2.frameWidth, iconP2.scale.x, iconSpeed),
@@ -235,6 +239,7 @@ function bopIcons() {
         i.updateHitbox();
         i.offset.x = 0;
     }
+    positionIcons();
 }
 
 function onBeatHit(beat:Int) {

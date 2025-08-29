@@ -5,7 +5,36 @@ public var border:CustomShader;
 public var beatend:CustomShader;
 public var angel:CustomShader;
 
+public var iconSys:HealthIcon; // sys guy
+public var iconHunter:HealthIcon; // hunter
+public var iconBowser:HealthIcon; // bowser
+public var iconOrder:Array<HealthIcon> = [];
+public var iconMap:Map<String, HealthIcon> = ["" => null];
+public var iconPos:Array<Array<Int>> = [
+    [0, 0],
+    [-85, 50],
+    [-85, -50]
+];
+
 function onCreatePost() {
+    // icons
+    iconSys = new HealthIcon("mrSYS", false);
+    iconHunter = new HealthIcon("hunter", false);
+    iconBowser = new HealthIcon("bowser", false);
+    iconOrder = [iconSys, iconHunter, iconBowser];
+    iconMap = ["mrSYS" => iconSys, "hunter" => iconHunter, "koopa" => iconBowser];
+    playField.hud.iconP2.visible = false;
+
+    for (i in [iconBowser, iconHunter, iconSys]) {
+        i.cameras = [camHUD];
+        i.zIndex = playField.hud.iconP2.zIndex;
+        playField.hud.insert(playField.hud.members.indexOf(playField.hud.iconP2), i);
+        
+        if(i != iconSys)
+            i.visible = false;
+    }
+
+    // shaders
     vcr = new CustomShader("VCRMario85");
     border = new CustomShader("VCRBorder");
     beatend = new CustomShader("YCBUEndingShader");
@@ -29,4 +58,26 @@ function onUpdate(elapsed:Float) {
         angel.data.pixel.value[0] = FlxMath.lerp(angel.data.pixel.value[0], 1, FlxMath.bound(elapsed * 4, 0, 1));
         angel.data.iTime.value = [Conductor.instance.playhead / 1000];
     }
+}
+
+function updateIconShizzle() {
+    final iconP2:HealthIcon = playField.hud.iconP2;
+    for (i in [iconSys, iconHunter, iconBowser]) {
+        i.setPosition(iconP2.x + iconPos[iconOrder.indexOf(i)][0], iconP2.y + iconPos[iconOrder.indexOf(i)][1]);
+        
+        i.scale.set(iconP2.scale.x, iconP2.scale.y);
+        i.updateHitbox();
+        i.offset.x = 0;
+
+        i.health = iconP2.health;
+        i.alpha = iconP2.alpha;
+    }
+}
+
+function onUpdatePost(elapsed:Float) {
+    updateIconShizzle();
+}
+
+function onBeatHit(beat:Int) {
+    updateIconShizzle();
 }
